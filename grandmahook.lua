@@ -22,7 +22,7 @@ CreateClientConVar("GrandmaHook_HealthESP", 1, true, false)
 CreateClientConVar("GrandmaHook_ArmorESP", 1, true, false)
 CreateClientConVar("GrandmaHook_Usergroup", 1, true, false)
 CreateClientConVar("GrandmaHook_Aimbot", 1, true, false)
-CreateClientConVar("GrandmaHook_AimbotSpeed", 50, true, false)
+CreateClientConVar("GrandmaHook_Aimbot_Speed", 35, true, false)
 CreateClientConVar("GrandmaHook", 1, true, false)
 CreateClientConVar("GrandmaHook_ShowEyeLine", 1, true, false)
 CreateClientConVar("GrandmaHook_PlayerLight", 1, true, false)
@@ -96,14 +96,14 @@ function OpenMenu()
     
     
     
-    local ragebutton =  Menu:Add("DButton")
+    local exploitbutton =  Menu:Add("DButton")
     local barStat = 0
     local isActive = false
-    ragebutton:SetText("")
-    ragebutton:SetSize(ScrW() / 15, ScrH() / 15)
-    ragebutton:SetPos(ScrW() / 500, ScrH() / 25)
+    exploitbutton:SetText("")
+    exploitbutton:SetSize(ScrW() / 15, ScrH() / 15)
+    exploitbutton:SetPos(ScrW() / 500, ScrH() / 25)
     
-    ragebutton.Paint = function(me, w,h)
+    exploitbutton.Paint = function(me, w,h)
         
         if me:IsHovered() then
             barStat = math.Clamp(barStat + 2 * FrameTime(), 0, 300)
@@ -115,19 +115,19 @@ function OpenMenu()
         surface.DrawRect(0,0,w * barStat,h)
         surface.SetDrawColor(50, 50, 255, 255)
         surface.DrawRect(0,0,w * barStat,h)
-        draw.SimpleText("Rage", "MenuFont", ScrW() / 110, ScrH() / 70, Color(255,255,255,255), TEXT_ALIGN_LEFT)
+        draw.SimpleText("Exploit", "MenuFont", ScrW() / 210, ScrH() / 70, Color(255,255,255,255), TEXT_ALIGN_LEFT)
         
     end
     
-    ragebutton.DoClick = function()
+    exploitbutton.DoClick = function()
         
         surface.PlaySound("common/wpn_select.wav")
         
-        local ragetab = Menu:Add("DPanel")
-        ragetab:SetText("")
-        ragetab:SetSize(ScrW() / 2, ScrH() / 2)
-        ragetab:SetPos(ScrW() / 15, ScrH() / 35)
-        ragetab.Paint = function(me, w,h)
+        local exploittab = Menu:Add("DPanel")
+        exploittab:SetText("")
+        exploittab:SetSize(ScrW() / 2, ScrH() / 2)
+        exploittab:SetPos(ScrW() / 15, ScrH() / 35)
+        exploittab.Paint = function(me, w,h)
             
             surface.SetDrawColor(44, 44, 44, 255)
             surface.DrawRect(0,0, w - 100,h - 100)
@@ -173,17 +173,18 @@ function OpenMenu()
                 
             end
             
+            local AimbotCheck = legitab:Add("DCheckBoxLabel")
+            AimbotCheck:SetPos(25,ScrH() / 28)
+            AimbotCheck:SetText("Aimbot (Mouse4)")
+            AimbotCheck:SetConVar("GrandmaHook_Aimbot")
+
         end
         
+      
+
+
     end
-    
-    legitbutton.DoClick = function()
         
-        surface.PlaySound("common/wpn_select.wav")
-        print("Test")
-        
-    end
-    
     local visualbutton =  Menu:Add("DButton")
     local barStat = 0
     local isActive = false
@@ -496,66 +497,72 @@ bhop.SOn = true
 bhop.Hooks = { hook = { }, name = { } }
 bhop.jump = false
 function bhop.AddHook(hookname, name, func)
-    table.insert( bhop.Hooks.hook, hookname )
-    table.insert( bhop.Hooks.name, name )
-    hook.Add( hookname, name, func ) --Hopefully you have something better
+	table.insert( bhop.Hooks.hook, hookname )
+	table.insert( bhop.Hooks.name, name )
+	hook.Add( hookname, name, func ) --Hopefully you have something better
 end
 bhop.MetaPlayer['KeyDown'] = function( self, key )
-    if self ~= LocalPlayer() then return end
-    
-    if (key == IN_MOVELEFT) and bhop.left then
-        return true
-    elseif (key == IN_MOVERIGHT) and bhop.right then
-        return true
-    elseif (key == IN_JUMP) and bhop.jump then
-        return true
-    else
-        return bhop.oldKeyDown( self, key )
-    end
+	if self ~= LocalPlayer() then return end
+	
+	if (key == IN_MOVELEFT) and bhop.left then
+		return true
+	elseif (key == IN_MOVERIGHT) and bhop.right then
+		return true
+	elseif (key == IN_JUMP) and bhop.jump then
+		return true
+	else
+		return bhop.oldKeyDown( self, key )
+	end
 end
-
+ 
 local oldEyePos = LocalPlayer():EyeAngles()--This is to see where player is looking
 function bhop.CreateMove( cmd )
-    bhop.jump = false
-    if (cmd:KeyDown( IN_JUMP )) then
-        
-        if (not bhop.jump) then
-            if (bhop.On and not LocalPlayer():OnGround()) then --Bhop here
-                cmd:RemoveKey( IN_JUMP )
-            end
-        else
-            bhop.jump = false
-        end
-        
-        if(bhop.SOn ) then--auto strafer
-            local traceRes = LocalPlayer():EyeAngles()
-            
-            if( traceRes.y > oldEyePos.y ) then --If you move your mouse left, walk left, if you're jumping
-                oldEyePos = traceRes
-                cmd:SetSideMove( -1000000 )
-                bhop.left = true
-                bhop.right = false 
-            elseif( oldEyePos.y > traceRes.y )  then --If you move your mouse right, move right,  while jumping
-                oldEyePos = traceRes
-                cmd:SetSideMove( 1000000 )
-                bhop.right = true
-                bhop.left = false
-            end
-        end
-    elseif (not bhop.jump) then
-        bhop.jump = true
-    end		 
+	bhop.jump = false
+	if (cmd:KeyDown( IN_JUMP )) then
+	
+		if (not bhop.jump) then
+			if (bhop.On and not LocalPlayer():OnGround()) then --Bhop here
+				cmd:RemoveKey( IN_JUMP )
+			end
+		else
+			bhop.jump = false
+		end
+ 
+		if(bhop.SOn ) then--auto strafer
+			local traceRes = LocalPlayer():EyeAngles()
+								   
+			if( traceRes.y > oldEyePos.y ) then --If you move your mouse left, walk left, if you're jumping
+				oldEyePos = traceRes
+				cmd:SetSideMove( -1000000 )
+				bhop.left = true
+				bhop.right = false 
+			elseif( oldEyePos.y > traceRes.y )  then --If you move your mouse right, move right,  while jumping
+				oldEyePos = traceRes
+				cmd:SetSideMove( 1000000 )
+				bhop.right = true
+				bhop.left = false
+			end
+		end
+	elseif (not bhop.jump) then
+		bhop.jump = true
+	end		 
 end
-
+		   
 bhop.AddHook( "CreateMove", tostring(math.random(0, 133712837)), bhop.CreateMove )--add the hook
-
-if GetConVar("GrandmaHook_bhop") then
-    bhop.On = not bhop.On
-end
-
-if GetConVar("GrandmaHook_bhop_strafe") then
-    bhop.SOn = not bhop.SOn
-end
+ 
+concommand.Add( "G_bhop", function () --Toggler
+	bhop.On = not bhop.On	
+	local state = "off"
+	if bhop.On then state = "on" end
+	LocalPlayer():ChatPrint("Bhop ".. state)
+end)
+	
+concommand.Add( "G_bhop_strafe",  function ()
+	bhop.SOn = not bhop.SOn
+	local state = "off"
+	if bhop.SOn then state = "on" end
+	LocalPlayer():ChatPrint("Strafe ".. state)
+end)
 
 local function gethead(ent)
     if ent:LookupBone("ValveBiped.Bip01_Head1") then
@@ -565,16 +572,25 @@ local function gethead(ent)
     return ent:LocalToWorld(ent:OBBCenter())
 end
 
-local function aimbot(ucmd)
-    local myang = LocalPlayer():GetAngles()
-    
-    if input.IsMouseDown(MOUSE_LEFT) or LocalPlayer():KeyDown(262144) or aim == true then
-        
-        if GetConVar("GrandmaHook_Aimbot"):GetInt() == 1 then
-            if LocalPlayer():GetActiveWeapon():GetClass() != "gmod_tool" and LocalPlayer():GetActiveWeapon():GetClass() != "gmod_camera" and LocalPlayer():GetActiveWeapon():GetClass() != "weapon_physgun" and LocalPlayer():GetActiveWeapon():GetClass() != "weapon_physcannon" then
+local function getspine(ent)
+    if ent:LookupBone("ValveBiped.Bip01_Spine3") then
+        local pos = ent:GetBonePosition(ent:GetHitBoxBone(0, 0))
+        return pos
+    end
+    return ent:LocalToWorld(ent:OBBCenter())
+end
+
+local function aimbot(ucmd) 
+    local myang = LocalPlayer():GetAngles()  
+    if input.IsMouseDown(MOUSE_4) or LocalPlayer():KeyDown(262144) or aim == true then     
+        if GetConVar("GrandmaHook_Aimbot"):GetInt() == 1 then   
+                    
+            if LocalPlayer():GetActiveWeapon():GetClass() ~= "gmod_tool" and LocalPlayer():GetActiveWeapon():GetClass() ~= "gmod_camera" and LocalPlayer():GetActiveWeapon():GetClass() ~= "weapon_physgun" and LocalPlayer():GetActiveWeapon():GetClass() ~= "weapon_physcannon" then
+
                 local ply = LocalPlayer()
-                local target = nil;
-                
+
+                local target = nil;  
+
                 for k, ent in next, player.GetAll() do
                     
                     local tr = util.TraceLine( {
@@ -585,9 +601,7 @@ local function aimbot(ucmd)
                     
                     if tr.HitPos == ent:EyePos() then
                         
-                        if (!IsValid(ent) || ent:InVehicle() || ent == LocalPlayer() || !ent:Alive() || ent:IsNPC() || ent:Team() == TEAM_SPECTATOR) then
-                            continue
-                        end
+                        
                         
                         local ang = (ent:GetPos() - LocalPlayer():GetPos()):Angle()
                         local angdiffy = math.abs(math.NormalizeAngle(myang.y - ang.y ))
@@ -597,8 +611,8 @@ local function aimbot(ucmd)
                             target = ent	
                         end
                     end
-                    if (target != nil) then
-                        local angle = (gethead(target) - LocalPlayer():GetShootPos()):Angle()
+                    if (target ~= nil) then
+                        local angle = (getspine(target) - LocalPlayer():GetShootPos()):Angle() 
                         angle.p = math.NormalizeAngle(angle.p)
                         angle.y = math.NormalizeAngle(angle.y)
                         local incr = GetConVar("GrandmaHook_Aimbot_Speed"):GetInt() / 100
@@ -609,6 +623,4 @@ local function aimbot(ucmd)
         end
     end
 end
-
-
 hook.Add("CreateMove", "bot", aimbot)
