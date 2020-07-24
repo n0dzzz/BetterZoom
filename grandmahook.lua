@@ -32,7 +32,7 @@ CreateClientConVar("GrandmaHook_EntityESP", 0, true, false)
 CreateClientConVar("GrandmaHook_antigrab", 1, true, false)
 CreateClientConVar("GrandmaHook_bhop", 1, true, false)
 CreateClientConVar("GrandmaHook_bhop_strafe", 1, true, false)
-CreateClientConVar("GrandmaHook_anitgrab", 1, true, false)
+CreateClientConVar("GrandmaHook_antigrab", 1, true, false)
 
 surface.PlaySound("common/stuck1.wav")
 
@@ -52,20 +52,19 @@ local function coordinates( ent )
     }
 end
 
-function DrawRainbowText( frequency, str, font, x, y )
-    
-    surface.SetFont( font )
-    
+function DrawRainbowText( frequency, str, font, x, y )  
+    surface.SetFont( font )   
     for i = 1, #str do
         surface.SetTextColor( HSVToColor( i * frequency % 360, 1, 1 ) )
         local w = surface.GetTextSize( string.sub( str, 1, i - 1 ) )
         surface.SetTextPos( x + w, y )
         surface.DrawText( string.sub( str, i, i ) )
     end
-    
 end
 
 function OpenMenu()
+    
+    ---------------------------------------------- MENU -------------------------------------------------------
     
     local Menu = vgui.Create("DFrame")
     
@@ -177,14 +176,14 @@ function OpenMenu()
             AimbotCheck:SetPos(25,ScrH() / 28)
             AimbotCheck:SetText("Aimbot (Mouse4)")
             AimbotCheck:SetConVar("GrandmaHook_Aimbot")
-
+            
         end
         
-      
-
-
-    end
         
+        
+        
+    end
+    
     local visualbutton =  Menu:Add("DButton")
     local barStat = 0
     local isActive = false
@@ -328,6 +327,8 @@ concommand.Add("grandmahookmenu", OpenMenu)
 
 hook.Add("HUDPaint", "Visuals", function() 
     
+    ------------------------------------- VISUALS -------------------------------------------
+    
     if GetConVar("GrandmaHook_NameESP"):GetInt() == 1 then
         
         for k, v in pairs(player.GetAll()) do
@@ -345,7 +346,7 @@ hook.Add("HUDPaint", "Visuals", function()
         for k, v in pairs(player.GetAll()) do
             
             if(v:Alive()) then
-                halo.Add( player.GetAll(), Color( 0, 255, 255 ), 1, 1, 15, true, true  )
+                halo.Add( player.GetAll(), Color( 0, 1, 255 ), 1, 1, 15, true, true  )
             end
             
         end
@@ -379,7 +380,7 @@ hook.Add("HUDPaint", "Visuals", function()
         end
         
     end
-    
+
     if GetConVar("GrandmaHook_Usergroup"):GetInt() == 1 then
         
         for k, v in pairs(player.GetAll()) do
@@ -423,7 +424,7 @@ hook.Add("HUDPaint", "Visuals", function()
         surface.DrawRect(ScrW() / 32 - 3, ScrH() / 23.5 - 3, ScrW() / 5.7 + 6, ScrH() / 20 + 6)
         surface.SetDrawColor(50, 50, 50, 255)
         surface.DrawRect(ScrW() / 32, ScrH() / 23.5, ScrW() / 5.7 , ScrH() / 20)
-        DrawRainbowText(18, "GrandmaHook By Grandma " .. util.DateStamp(), "DermaDefault", ScrW() / 17, ScrH() / 16.5)
+        DrawRainbowText(10, "GrandmaHook By Grandma " .. util.DateStamp(), "DermaDefault", ScrW() / 17, ScrH() / 16.5)
         
     end
     
@@ -437,6 +438,9 @@ hook.Add("HUDPaint", "Visuals", function()
     end
     
 end)
+
+
+-------------------------------------- MISC ---------------------------------------------------------------
 
 function antiscreengrab()
     
@@ -489,6 +493,13 @@ function antiscreengrab()
     
 end
 
+
+------------------------- BOTS --------------------------------------------------------------------------
+
+
+
+
+
 local bhop = { }
 bhop.MetaPlayer = FindMetaTable( "Player") 
 bhop.oldKeyDown = bhop.MetaPlayer['KeyDown']
@@ -497,71 +508,71 @@ bhop.SOn = true
 bhop.Hooks = { hook = { }, name = { } }
 bhop.jump = false
 function bhop.AddHook(hookname, name, func)
-	table.insert( bhop.Hooks.hook, hookname )
-	table.insert( bhop.Hooks.name, name )
-	hook.Add( hookname, name, func ) --Hopefully you have something better
+    table.insert( bhop.Hooks.hook, hookname )
+    table.insert( bhop.Hooks.name, name )
+    hook.Add( hookname, name, func ) --Hopefully you have something better
 end
 bhop.MetaPlayer['KeyDown'] = function( self, key )
-	if self ~= LocalPlayer() then return end
-	
-	if (key == IN_MOVELEFT) and bhop.left then
-		return true
-	elseif (key == IN_MOVERIGHT) and bhop.right then
-		return true
-	elseif (key == IN_JUMP) and bhop.jump then
-		return true
-	else
-		return bhop.oldKeyDown( self, key )
-	end
+    if self ~= LocalPlayer() then return end
+    
+    if (key == IN_MOVELEFT) and bhop.left then
+        return true
+    elseif (key == IN_MOVERIGHT) and bhop.right then
+        return true
+    elseif (key == IN_JUMP) and bhop.jump then
+        return true
+    else
+        return bhop.oldKeyDown( self, key )
+    end
 end
- 
+
 local oldEyePos = LocalPlayer():EyeAngles()--This is to see where player is looking
 function bhop.CreateMove( cmd )
-	bhop.jump = false
-	if (cmd:KeyDown( IN_JUMP )) then
-	
-		if (not bhop.jump) then
-			if (bhop.On and not LocalPlayer():OnGround()) then --Bhop here
-				cmd:RemoveKey( IN_JUMP )
-			end
-		else
-			bhop.jump = false
-		end
- 
-		if(bhop.SOn ) then--auto strafer
-			local traceRes = LocalPlayer():EyeAngles()
-								   
-			if( traceRes.y > oldEyePos.y ) then --If you move your mouse left, walk left, if you're jumping
-				oldEyePos = traceRes
-				cmd:SetSideMove( -1000000 )
-				bhop.left = true
-				bhop.right = false 
-			elseif( oldEyePos.y > traceRes.y )  then --If you move your mouse right, move right,  while jumping
-				oldEyePos = traceRes
-				cmd:SetSideMove( 1000000 )
-				bhop.right = true
-				bhop.left = false
-			end
-		end
-	elseif (not bhop.jump) then
-		bhop.jump = true
-	end		 
+    bhop.jump = false
+    if (cmd:KeyDown( IN_JUMP )) then
+        
+        if (not bhop.jump) then
+            if (GetConVar("GrandmaHook_antigrab"):GetInt() == 1 and not LocalPlayer():OnGround()) then --Bhop here
+                cmd:RemoveKey( IN_JUMP )
+            end
+        else
+            bhop.jump = false
+        end
+        
+        if(GetConVar("GrandmaHook_bhop_strafe"):GetInt() == 1) then--auto strafer
+            local traceRes = LocalPlayer():EyeAngles()
+            
+            if( traceRes.y > oldEyePos.y ) then --If you move your mouse left, walk left, if you're jumping
+                oldEyePos = traceRes
+                cmd:SetSideMove( -1000000 )
+                bhop.left = true
+                bhop.right = false 
+            elseif( oldEyePos.y > traceRes.y )  then --If you move your mouse right, move right,  while jumping
+                oldEyePos = traceRes
+                cmd:SetSideMove( 1000000 )
+                bhop.right = true
+                bhop.left = false
+            end
+        end
+    elseif (not bhop.jump) then
+        bhop.jump = true
+    end		 
 end
-		   
+
 bhop.AddHook( "CreateMove", tostring(math.random(0, 133712837)), bhop.CreateMove )--add the hook
- 
+
 concommand.Add( "G_bhop", function () --Toggler
-	bhop.On = not bhop.On	
-	local state = "off"
-	if bhop.On then state = "on" end
-	LocalPlayer():ChatPrint("Bhop ".. state)
+    bhop.On = not bhop.On	
+    local state = "off"
+    if bhop.On then state = "on" end
+    LocalPlayer():ChatPrint("Bhop ".. state)
 end)
-	
+
 concommand.Add( "G_bhop_strafe",  function ()
-	bhop.SOn = not bhop.SOn
-	local state = "off"
-	if bhop.SOn then state = "on" end
-	LocalPlayer():ChatPrint("Strafe ".. state)
+    bhop.SOn = not bhop.SOn
+    local state = "off"
+    if bhop.SOn then state = "on" end
+    LocalPlayer():ChatPrint("Strafe ".. state)
 end)
 
 local function gethead(ent)
@@ -584,13 +595,13 @@ local function aimbot(ucmd)
     local myang = LocalPlayer():GetAngles()  
     if input.IsMouseDown(MOUSE_4) or LocalPlayer():KeyDown(262144) or aim == true then     
         if GetConVar("GrandmaHook_Aimbot"):GetInt() == 1 then   
-                    
+            
             if LocalPlayer():GetActiveWeapon():GetClass() ~= "gmod_tool" and LocalPlayer():GetActiveWeapon():GetClass() ~= "gmod_camera" and LocalPlayer():GetActiveWeapon():GetClass() ~= "weapon_physgun" and LocalPlayer():GetActiveWeapon():GetClass() ~= "weapon_physcannon" then
-
+                
                 local ply = LocalPlayer()
-
+                
                 local target = nil;  
-
+                
                 for k, ent in next, player.GetAll() do
                     
                     local tr = util.TraceLine( {
